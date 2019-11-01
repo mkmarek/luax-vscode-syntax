@@ -1,0 +1,89 @@
+{
+    "name": "luax-language-support",
+    "displayName": "LuaX language support",
+    "description": "Language support for LuaX files",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.39.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "antlr": "antlr4ts -visitor src/grammar/luax.g4 -o src/grammar/ts",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile",
+        "test": "node ./out/test/runTest.js"
+    },
+    "activationEvents": [
+        "onLanguage:luax"
+    ],
+    "main": "./out/extension.js",
+    "devDependencies": {
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^5.2.6",
+        "@types/node": "^10.12.21",
+        "@types/vscode": "^1.39.0",
+        "antlr4ts-cli": "^0.5.0-alpha.3",
+        "glob": "^7.1.4",
+        "mocha": "^6.1.4",
+        "tslint": "^5.12.1",
+        "typescript": "^3.3.1",
+        "vscode-test": "^1.2.0"
+    },
+    "contributes": {
+        "languages": [
+            {
+                "id": "luax",
+                "aliases": [
+                    "LuaX",
+                    "luax"
+                ],
+                "extensions": [
+                    ".luax"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "luax",
+                "scopeName": "source.luax",
+                "path": "./syntaxes/luax.tmLanguage.json"
+            }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "Example configuration",
+            "properties": {
+                "languageServerExample.maxNumberOfProblems": {
+                    "scope": "resource",
+                    "type": "number",
+                    "default": 100,
+                    "description": "Controls the maximum number of problems produced by the server."
+                },
+                "languageServerExample.trace.server": {
+                    "scope": "window",
+                    "type": "string",
+                    "enum": [
+                        "off",
+                        "messages",
+                        "verbose"
+                    ],
+                    "default": "off",
+                    "description": "Traces the communication between VS Code and the language server."
+                }
+            }
+        }
+    },
+    "dependencies": {
+        "@types/luaparse": "^0.2.6",
+        "antlr4-c3": "^1.1.12",
+        "antlr4ts": "^0.5.0-alpha.3",
+        "luaparse": "^0.2.1",
+        "vscode-languageclient": "^5.2.1",
+        "vscode-languageserver": "^5.2.1"
+    }
+}

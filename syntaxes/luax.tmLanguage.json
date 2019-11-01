@@ -1,0 +1,537 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "LuaX",
+	"patterns": [
+		{
+			"include": "#luax-tag"
+		},
+		{
+			"include": "#expression"
+		}
+	],
+	"repository": {
+		"expression" : {
+			"patterns": [
+				{
+					"begin": "\\b(?:(local)\\s+)?(function)\\s*(?:\\s+([a-zA-Z_][a-zA-Z0-9_]*(?:([\\.:])[a-zA-Z_][a-zA-Z0-9_]*)?)\\s*)?(\\()",
+					"beginCaptures": {
+						"1": {
+							"name": "storage.modifier.local.luax"
+						},
+						"2": {
+							"name": "keyword.control.luax"
+						},
+						"3": {
+							"name": "entity.name.function.luax"
+						},
+						"4": {
+							"name": "punctuation.separator.parameter.luax"
+						},
+						"5": {
+							"name": "punctuation.definition.parameters.begin.luax"
+						}
+					},
+					"end": "\\)",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.parameters.end.luax"
+						}
+					},
+					"name": "meta.function.luax",
+					"patterns": [
+						{
+							"match": "[a-zA-Z_][a-zA-Z0-9_]*",
+							"name": "variable.parameter.function.luax"
+						},
+						{
+							"match": ",",
+							"name": "punctuation.separator.arguments.luax"
+						}
+					]
+				},
+				{
+					"match": "(?<![\\w\\d.])0[xX][0-9A-Fa-f]+(?![pPeE.0-9])",
+					"name": "constant.numeric.integer.hexadecimal.luax"
+				},
+				{
+					"match": "(?<![\\w\\d.])0[xX][0-9A-Fa-f]+(\\.[0-9A-Fa-f]+)?([eE]-?\\d*)?([pP][-+]\\d+)?",
+					"name": "constant.numeric.float.hexadecimal.luax"
+				},
+				{
+					"match": "(?<![\\w\\d.])\\d+(?![pPeE.0-9])",
+					"name": "constant.numeric.integer.luax"
+				},
+				{
+					"match": "(?<![\\w\\d.])\\d+(\\.\\d+)?([eE]-?\\d*)?",
+					"name": "constant.numeric.float.luax"
+				},
+				{
+					"begin": "'",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.begin.luax"
+						}
+					},
+					"end": "'",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.end.luax"
+						}
+					},
+					"name": "string.quoted.single.luax",
+					"patterns": [
+						{
+							"include": "#escaped_char"
+						}
+					]
+				},
+				{
+					"begin": "\"",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.begin.luax"
+						}
+					},
+					"end": "\"",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.end.luax"
+						}
+					},
+					"name": "string.quoted.double.luax",
+					"patterns": [
+						{
+							"include": "#escaped_char"
+						}
+					]
+				},
+				{
+					"begin": "(?<=\\.cdef)\\s*(\\[(=*)\\[)",
+					"beginCaptures": {
+						"0": {
+							"name": "string.quoted.other.multiline.luax"
+						},
+						"1": {
+							"name": "punctuation.definition.string.begin.luax"
+						}
+					},
+					"contentName": "meta.embedded.luax",
+					"end": "(\\]\\2\\])",
+					"endCaptures": {
+						"0": {
+							"name": "string.quoted.other.multiline.luax"
+						},
+						"1": {
+							"name": "punctuation.definition.string.end.luax"
+						}
+					},
+					"patterns": [
+						{
+							"include": "source.c"
+						}
+					]
+				},
+				{
+					"begin": "(?<!--)\\[(=*)\\[",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.begin.luax"
+						}
+					},
+					"end": "\\]\\1\\]",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.end.luax"
+						}
+					},
+					"name": "string.quoted.other.multiline.luax"
+				},
+				{
+					"captures": {
+						"1": {
+							"name": "punctuation.definition.comment.luax"
+						}
+					},
+					"match": "\\A(#!).*$\\n?",
+					"name": "comment.line.shebang.luax"
+				},
+				{
+					"begin": "(^[ \\t]+)?(?=--)",
+					"beginCaptures": {
+						"1": {
+							"name": "punctuation.whitespace.comment.leading.luax"
+						}
+					},
+					"end": "(?!\\G)((?!^)[ \\t]+\\n)?",
+					"endCaptures": {
+						"1": {
+							"name": "punctuation.whitespace.comment.trailing.luax"
+						}
+					},
+					"patterns": [
+						{
+							"begin": "--\\[(=*)\\[",
+							"beginCaptures": {
+								"0": {
+									"name": "punctuation.definition.comment.begin.luax"
+								}
+							},
+							"end": "\\]\\1\\]",
+							"endCaptures": {
+								"0": {
+									"name": "punctuation.definition.comment.end.luax"
+								}
+							},
+							"name": "comment.block.luax"
+						},
+						{
+							"begin": "--",
+							"beginCaptures": {
+								"0": {
+									"name": "punctuation.definition.comment.luax"
+								}
+							},
+							"end": "\\n",
+							"name": "comment.line.double-dash.luax"
+						}
+					]
+				},
+				{
+					"captures": {
+						"1": {
+							"name": "keyword.control.goto.luax"
+						},
+						"2": {
+							"name": "constant.other.placeholder.luax"
+						}
+					},
+					"match": "\\b(goto)\\s+([a-zA-Z_][a-zA-Z0-9_]*)"
+				},
+				{
+					"captures": {
+						"1": {
+							"name": "punctuation.definition.label.begin.luax"
+						},
+						"2": {
+							"name": "punctuation.definition.label.end.luax"
+						}
+					},
+					"match": "(::)[a-zA-Z_][a-zA-Z0-9_]*(::)",
+					"name": "constant.other.placeholder.luax"
+				},
+				{
+					"match": "\\b(break|do|else|for|if|elseif|goto|return|then|repeat|while|until|end|function|local|in)\\b",
+					"name": "keyword.control.luax"
+				},
+				{
+					"match": "(?<![^.]\\.|:)\\b(false|nil|true|_G|_VERSION|math\\.(pi|huge))\\b|(?<![.])\\.{3}(?!\\.)",
+					"name": "constant.language.luax"
+				},
+				{
+					"match": "(?<![^.]\\.|:)\\b(self)\\b",
+					"name": "variable.language.self.luax"
+				},
+				{
+					"match": "(?<![^.]\\.|:)\\b(assert|collectgarbage|dofile|error|getfenv|getmetatable|ipairs|loadfile|loadstring|module|next|pairs|pcall|print|rawequal|rawget|rawset|require|select|setfenv|setmetatable|tonumber|tostring|type|unpack|xpcall)\\b(?=\\s*(?:[({\"']|\\[\\[))",
+					"name": "support.function.luax"
+				},
+				{
+					"match": "(?<![^.]\\.|:)\\b(coroutine\\.(create|resume|running|status|wrap|yield)|string\\.(byte|char|dump|find|format|gmatch|gsub|len|lower|match|rep|reverse|sub|upper)|table\\.(concat|insert|maxn|remove|sort)|math\\.(abs|acos|asin|atan2?|ceil|cosh?|deg|exp|floor|fmod|frexp|ldexp|log|log10|max|min|modf|pow|rad|random|randomseed|sinh?|sqrt|tanh?)|io\\.(close|flush|input|lines|open|output|popen|read|tmpfile|type|write)|os\\.(clock|date|difftime|execute|exit|getenv|remove|rename|setlocale|time|tmpname)|package\\.(cpath|loaded|loadlib|path|preload|seeall)|debug\\.(debug|[gs]etfenv|[gs]ethook|getinfo|[gs]etlocal|[gs]etmetatable|getregistry|[gs]etupvalue|traceback))\\b(?=\\s*(?:[({\"']|\\[\\[))",
+					"name": "support.function.library.luax"
+				},
+				{
+					"match": "\\b(and|or|not)\\b",
+					"name": "keyword.operator.luax"
+				},
+				{
+					"match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b(?=\\s*(?:[({\"']|\\[\\[))",
+					"name": "support.function.any-method.luax"
+				},
+				{
+					"match": "(?<=[^.]\\.|:)\\b([a-zA-Z_][a-zA-Z0-9_]*)",
+					"name": "variable.other.luax"
+				},
+				{
+					"match": "\\+|-|%|#|\\*|\\/|\\^|==?|~=|<=?|>=?|(?<!\\.)\\.{2}(?!\\.)",
+					"name": "keyword.operator.luax"
+				}
+			]
+		},
+		"escaped_char": {
+			"patterns": [
+				{
+					"match": "\\\\[abfnrtvz\\\\\"'\\n]",
+					"name": "constant.character.escape.luax"
+				},
+				{
+					"match": "\\\\\\d{1,3}",
+					"name": "constant.character.escape.byte.luax"
+				},
+				{
+					"match": "\\\\x[0-9A-Fa-f][0-9A-Fa-f]",
+					"name": "constant.character.escape.byte.luax"
+				},
+				{
+					"match": "\\\\u\\{[0-9A-Fa-f]+\\}",
+					"name": "constant.character.escape.unicode.luax"
+				},
+				{
+					"match": "\\\\.",
+					"name": "invalid.illegal.character.escape.luax"
+				}
+			]
+		},
+		"luax-tag-in-expression": {
+			"begin": "(?x)\n  (?<!\\+\\+|--)(?<=[({\\[,?=>:*]|&&|\\|\\||\\?|\\*\\/|^await|[^\\._$[:alnum:]]await|^return|[^\\._$[:alnum:]]return|^default|[^\\._$[:alnum:]]default|^yield|[^\\._$[:alnum:]]yield|^)\\s*\n  (?!<\\s*[_$[:alpha:]][_$[:alnum:]]*((\\s+extends\\s+[^=>])|,)) # look ahead is not type parameter of arrow\n  (?=(<)\\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?<!\\.|-)(:))?((?:[a-z][a-z0-9]*|([_$[:alpha:]][-_$[:alnum:].]*))(?<!\\.|-))(?=((<\\s*)|(\\s+))(?!\\?)|\\/?>))",
+			"end": "(?!(<)\\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?<!\\.|-)(:))?((?:[a-z][a-z0-9]*|([_$[:alpha:]][-_$[:alnum:].]*))(?<!\\.|-))(?=((<\\s*)|(\\s+))(?!\\?)|\\/?>))",
+			"patterns": [
+				{
+					"include": "#luax-tag"
+				}
+			]
+		},
+		"luax-tag": {
+			"name": "meta.tag.luax",
+			"begin": "(?=(<)\\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?<!\\.|-)(:))?((?:[a-z][a-z0-9]*|([_$[:alpha:]][-_$[:alnum:].]*))(?<!\\.|-))(?=((<\\s*)|(\\s+))(?!\\?)|\\/?>))",
+			"end": "(/>)|(?:(</)\\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?<!\\.|-)(:))?((?:[a-z][a-z0-9]*|([_$[:alpha:]][-_$[:alnum:].]*))(?<!\\.|-))?\\s*(>))",
+			"endCaptures": {
+				"1": {
+					"name": "punctuation.definition.tag.end.luax"
+				},
+				"2": {
+					"name": "punctuation.definition.tag.begin.luax"
+				},
+				"3": {
+					"name": "entity.name.tag.namespace.luax"
+				},
+				"4": {
+					"name": "punctuation.separator.namespace.luax"
+				},
+				"5": {
+					"name": "entity.name.tag.luax"
+				},
+				"6": {
+					"name": "support.class.component.luax"
+				},
+				"7": {
+					"name": "punctuation.definition.tag.end.luax"
+				}
+			},
+			"patterns": [
+				{
+					"begin": "(<)\\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?<!\\.|-)(:))?((?:[a-z][a-z0-9]*|([_$[:alpha:]][-_$[:alnum:].]*))(?<!\\.|-))(?=((<\\s*)|(\\s+))(?!\\?)|\\/?>)",
+					"beginCaptures": {
+						"1": {
+							"name": "punctuation.definition.tag.begin.luax"
+						},
+						"2": {
+							"name": "entity.name.tag.namespace.luax"
+						},
+						"3": {
+							"name": "punctuation.separator.namespace.luax"
+						},
+						"4": {
+							"name": "entity.name.tag.luax"
+						},
+						"5": {
+							"name": "support.class.component.luax"
+						}
+					},
+					"end": "(?=[/]?>)",
+					"patterns": [
+						{
+							"include": "#type-arguments"
+						},
+						{
+							"include": "#luax-tag-attributes"
+						}
+					]
+				},
+				{
+					"begin": "(>)",
+					"beginCaptures": {
+						"1": {
+							"name": "punctuation.definition.tag.end.luax"
+						}
+					},
+					"end": "(?=</)",
+					"contentName": "meta.luax.children.luax",
+					"patterns": [
+						{
+							"include": "#luax-children"
+						}
+					]
+				}
+			]
+		},
+		"luax-children": {
+			"patterns": [
+				{
+					"include": "#luax-tag-without-attributes"
+				},
+				{
+					"include": "#luax-tag"
+				},
+				{
+					"include": "#luax-evaluated-code"
+				},
+				{
+					"include": "#luax-entities"
+				}
+			]
+		},
+		"luax-entities": {
+			"patterns": [
+				{
+					"name": "constant.character.entity.luax",
+					"match": "(&)([a-zA-Z0-9]+|#[0-9]+|#x[0-9a-fA-F]+)(;)",
+					"captures": {
+						"1": {
+							"name": "punctuation.definition.entity.luax"
+						},
+						"3": {
+							"name": "punctuation.definition.entity.luax"
+						}
+					}
+				},
+				{
+					"name": "invalid.illegal.bad-ampersand.luax",
+					"match": "&"
+				}
+			]
+		},
+		"luax-tag-attributes": {
+			"name": "meta.tag.attributes.luax",
+			"begin": "\\s+",
+			"end": "(?=[/]?>)",
+			"patterns": [
+				{
+					"include": "#luax-tag-attribute-name"
+				},
+				{
+					"include": "#luax-tag-attribute-assignment"
+				},
+				{
+					"include": "#luax-evaluated-code"
+				},
+				{
+					"include": "#luax-tag-attributes-illegal"
+				}
+			]
+		},
+		"luax-tag-attributes-illegal": {
+			"name": "invalid.illegal.attribute.luax",
+			"match": "\\S+"
+		},
+		"luax-evaluated-code": {
+			"contentName": "meta.embedded.expression.luax",
+			"begin": "\\{",
+			"end": "\\}",
+			"beginCaptures": {
+				"0": {
+					"name": "punctuation.section.embedded.begin.luax"
+				}
+			},
+			"endCaptures": {
+				"0": {
+					"name": "punctuation.section.embedded.end.luax"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#expression"
+				}
+			]
+		},
+		"luax-tag-attribute-assignment": {
+			"name": "keyword.operator.assignment.luax",
+			"match": "=(?=\\s*(?:'|\"|{|/\\*|//|\\n))"
+		},
+		"luax-tag-attribute-name": {
+			"match": "(?x)\n  \\s*\n  (?:([_$[:alpha:]][-_$[:alnum:].]*)(:))?\n  ([_$[:alpha:]][-_$[:alnum:]]*)\n  (?=\\s|=|/?>|/\\*|//)",
+			"captures": {
+				"1": {
+					"name": "entity.other.attribute-name.namespace.luax"
+				},
+				"2": {
+					"name": "punctuation.separator.namespace.luax"
+				},
+				"3": {
+					"name": "entity.other.attribute-name.luax"
+				}
+			}
+		},
+		"type-arguments": {
+			"name": "meta.type.parameters.luax",
+			"begin": "\\<",
+			"beginCaptures": {
+				"0": {
+					"name": "punctuation.definition.typeparameters.begin.luax"
+				}
+			},
+			"end": "\\>",
+			"endCaptures": {
+				"0": {
+					"name": "punctuation.definition.typeparameters.end.luax"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#type-arguments-body"
+				}
+			]
+		},
+		"luax-tag-without-attributes": {
+			"name": "meta.tag.without-attributes.luax",
+			"begin": "(<)\\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?<!\\.|-)(:))?((?:[a-z][a-z0-9]*|([_$[:alpha:]][-_$[:alnum:].]*))(?<!\\.|-))?\\s*(>)",
+			"end": "(</)\\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?<!\\.|-)(:))?((?:[a-z][a-z0-9]*|([_$[:alpha:]][-_$[:alnum:].]*))(?<!\\.|-))?\\s*(>)",
+			"beginCaptures": {
+				"1": {
+					"name": "punctuation.definition.tag.begin.luax"
+				},
+				"2": {
+					"name": "entity.name.tag.namespace.luax"
+				},
+				"3": {
+					"name": "punctuation.separator.namespace.luax"
+				},
+				"4": {
+					"name": "entity.name.tag.luax"
+				},
+				"5": {
+					"name": "support.class.component.luax"
+				},
+				"6": {
+					"name": "punctuation.definition.tag.end.luax"
+				}
+			},
+			"endCaptures": {
+				"1": {
+					"name": "punctuation.definition.tag.begin.luax"
+				},
+				"2": {
+					"name": "entity.name.tag.namespace.luax"
+				},
+				"3": {
+					"name": "punctuation.separator.namespace.luax"
+				},
+				"4": {
+					"name": "entity.name.tag.luax"
+				},
+				"5": {
+					"name": "support.class.component.luax"
+				},
+				"6": {
+					"name": "punctuation.definition.tag.end.luax"
+				}
+			},
+			"contentName": "meta.luax.children.luax",
+			"patterns": [
+				{
+					"include": "#luax-children"
+				}
+			]
+		}
+	},
+	"scopeName": "source.luax"
+}
