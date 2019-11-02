@@ -132,7 +132,7 @@ elementTerminator
     ; 
 
 elementChildren
-    : (element | '{' functioncall '}')*
+    : (element | '{' exp '}')*
     ;
 
 prefixexp

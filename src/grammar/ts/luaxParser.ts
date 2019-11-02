@@ -1204,7 +1204,7 @@ export class luaxParser extends Parser {
 					this.state = 299;
 					this.match(luaxParser.T__32);
 					this.state = 300;
-					this.functioncall();
+					this.exp(0);
 					this.state = 301;
 					this.match(luaxParser.T__28);
 					}
@@ -2442,7 +2442,7 @@ export class luaxParser extends Parser {
 		"\x02\u0127\u0128\x07=\x02\x02\u0128\u0129\x07!\x02\x02\u0129\u012B\x03" +
 		"\x02\x02\x02\u012A\u0123\x03\x02\x02\x02\u012A\u0124\x03\x02\x02\x02\u012B" +
 		"\x1B\x03\x02\x02\x02\u012C\u0132\x05\x16\f\x02\u012D\u012E\x07#\x02\x02" +
-		"\u012E\u012F\x05 \x11\x02\u012F\u0130\x07\x1F\x02\x02\u0130\u0132\x03" +
+		"\u012E\u012F\x05\x14\v\x02\u012F\u0130\x07\x1F\x02\x02\u0130\u0132\x03" +
 		"\x02\x02\x02\u0131\u012C\x03\x02\x02\x02\u0131\u012D\x03\x02\x02\x02\u0132" +
 		"\u0135\x03\x02\x02\x02\u0133\u0131\x03\x02\x02\x02\u0133\u0134\x03\x02" +
 		"\x02\x02\u0134\x1D\x03\x02\x02\x02\u0135\u0133\x03\x02\x02\x02\u0136\u013A" +
@@ -3083,13 +3083,13 @@ export class ElementChildrenContext extends ParserRuleContext {
 			return this.getRuleContext(i, ElementContext);
 		}
 	}
-	public functioncall(): FunctioncallContext[];
-	public functioncall(i: number): FunctioncallContext;
-	public functioncall(i?: number): FunctioncallContext | FunctioncallContext[] {
+	public exp(): ExpContext[];
+	public exp(i: number): ExpContext;
+	public exp(i?: number): ExpContext | ExpContext[] {
 		if (i === undefined) {
-			return this.getRuleContexts(FunctioncallContext);
+			return this.getRuleContexts(ExpContext);
 		} else {
-			return this.getRuleContext(i, FunctioncallContext);
+			return this.getRuleContext(i, ExpContext);
 		}
 	}
 	constructor(parent: ParserRuleContext | undefined, invokingState: number) {

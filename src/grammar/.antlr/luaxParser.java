@@ -1247,11 +1247,11 @@ public class luaxParser extends Parser {
 		public ElementContext element(int i) {
 			return getRuleContext(ElementContext.class,i);
 		}
-		public List<FunctioncallContext> functioncall() {
-			return getRuleContexts(FunctioncallContext.class);
+		public List<ExpContext> exp() {
+			return getRuleContexts(ExpContext.class);
 		}
-		public FunctioncallContext functioncall(int i) {
-			return getRuleContext(FunctioncallContext.class,i);
+		public ExpContext exp(int i) {
+			return getRuleContext(ExpContext.class,i);
 		}
 		public ElementChildrenContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1285,7 +1285,7 @@ public class luaxParser extends Parser {
 					setState(299);
 					match(T__32);
 					setState(300);
-					functioncall();
+					exp(0);
 					setState(301);
 					match(T__28);
 					}
@@ -2628,8 +2628,8 @@ public class luaxParser extends Parser {
 		"\3\2\2\2\u0123\u012b\7 \2\2\u0124\u0125\7!\2\2\u0125\u0126\5\34\17\2\u0126"+
 		"\u0127\7\"\2\2\u0127\u0128\7=\2\2\u0128\u0129\7!\2\2\u0129\u012b\3\2\2"+
 		"\2\u012a\u0123\3\2\2\2\u012a\u0124\3\2\2\2\u012b\33\3\2\2\2\u012c\u0132"+
-		"\5\26\f\2\u012d\u012e\7#\2\2\u012e\u012f\5 \21\2\u012f\u0130\7\37\2\2"+
-		"\u0130\u0132\3\2\2\2\u0131\u012c\3\2\2\2\u0131\u012d\3\2\2\2\u0132\u0135"+
+		"\5\26\f\2\u012d\u012e\7#\2\2\u012e\u012f\5\24\13\2\u012f\u0130\7\37\2"+
+		"\2\u0130\u0132\3\2\2\2\u0131\u012c\3\2\2\2\u0131\u012d\3\2\2\2\u0132\u0135"+
 		"\3\2\2\2\u0133\u0131\3\2\2\2\u0133\u0134\3\2\2\2\u0134\35\3\2\2\2\u0135"+
 		"\u0133\3\2\2\2\u0136\u013a\5\"\22\2\u0137\u0139\5(\25\2\u0138\u0137\3"+
 		"\2\2\2\u0139\u013c\3\2\2\2\u013a\u0138\3\2\2\2\u013a\u013b\3\2\2\2\u013b"+

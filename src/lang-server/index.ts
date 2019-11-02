@@ -11,12 +11,15 @@ import {
 	CompletionItemKind,
 	TextDocumentPositionParams
 } from 'vscode-languageserver';
+import * as chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ANTLRInputStream, CommonTokenStream, Token, ANTLRErrorListener, Recognizer, RecognitionException, CommonToken } from 'antlr4ts';
 import { luaxLexer } from '../grammar/ts/luaxLexer';
-import { luaxParser } from '../grammar/ts/luaxParser';
+import { luaxParser, ElementNameContext } from '../grammar/ts/luaxParser';
 import * as c3 from 'antlr4-c3';
+import { luaxVisitor } from '../grammar/ts/luaxVisitor';
+import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor'
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -31,8 +34,109 @@ let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability: boolean = false;
 
 let workspaceRoot: string | null | undefined;
+
+let components: string[] = [];
+let nativeComponents: string[] = [];
+
+class ValidationVisitor extends AbstractParseTreeVisitor<Diagnostic[]> implements luaxVisitor<Diagnostic[]> {
+	defaultResult() {
+		return [];
+	}
+
+	aggregateResult(aggregate: Diagnostic[], nextResult: Diagnostic[]) {
+		return [ ...aggregate, ...nextResult];
+	  }
+	
+	visitElementName(ctx: ElementNameContext) {
+		const componentName = ctx.payload.text;
+
+		if (!components.length && !nativeComponents.length) {
+			reloadComponentCache();
+		}
+
+		if (!components.includes(componentName) && !nativeComponents.includes(componentName)) {
+			const error: Diagnostic = {
+				severity: DiagnosticSeverity.Error,
+				range: {
+					start: { line: ctx.start.line - 1, character: ctx.start.charPositionInLine },
+					end: { line: ctx.start.line - 1, character: ctx.start.charPositionInLine + componentName.length }
+				},
+				message: `Component ${componentName} is not defined`,
+				source: 'ANTLR'
+			};
+
+			return [error];
+		}
+
+		return [];
+	}
+}
+
+function reloadComponentCache() {
+	components = workspaceRoot
+		? fromDir(workspaceRoot, '.luax').map(e => path.basename(e, '.luax'))
+		: [];
+
+	nativeComponents = getNativeComponents();
+}
+
 connection.onInitialize((params: InitializeParams) => {
 	workspaceRoot = params.rootPath;
+
+	if (workspaceRoot) {
+		const watcher = chokidar.watch(`${workspaceRoot}`, {
+			persistent: true,
+			ignored: /(^|[\/\\])\../, // ignore dotfiles
+		});
+
+		const add = (p: string) => {
+			if (p.endsWith('.luax')) {
+				const name = path.basename(p, '.luax');
+				if (!components.includes(name)) {
+					components.push(name);
+				}
+			}
+
+			if (p.endsWith('.cs')) {
+				const content = fs.readFileSync(p).toString('utf8');
+				const regex = /\[NativeComponentRegistration\("(\w+)"\)\]/;
+				const match = regex.exec(content);
+				const name = match && match[1] || null;
+				
+				if (name && !nativeComponents.includes(name)) {
+					nativeComponents.push(name);
+				}
+			}
+		}
+
+		const change = (p: string) => {
+			if (p.endsWith('.cs')) {
+				nativeComponents = getNativeComponents();
+			}
+		}
+
+		const remove = (p: string) => {
+			if (p.endsWith('.luax')) {
+				const name = path.basename(p, '.luax');
+				components = components.filter(e => e !== name);
+			}
+
+			if (p.endsWith('.cs')) {
+				const content = fs.readFileSync(p).toString('utf8');
+				const regex = /\[NativeComponentRegistration\("(\w+)"\)\]/;
+				const match = regex.exec(content);
+				const name = match && match[1] || null;
+				
+				nativeComponents = nativeComponents.filter(e => e !== name);
+			}
+		}
+	
+		watcher
+			.on('add', add)
+			.on('change', change)
+			.on('unlink', remove);
+	}
+
 	let capabilities = params.capabilities;
 
 	// Does the client support thre `workspace/configuration` request?
@@ -119,6 +223,10 @@ let globalSettings: ExampleSettings = defaultSettings;
 // Cache the settings of all open documents
 let documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
 
+connection.onDidSaveTextDocument(change => {
+	reloadComponentCache();
+});
+
 connection.onDidChangeConfiguration(change => {
 	if (hasConfigurationCapability) {
 		// Reset all cached document settings
@@ -128,6 +236,8 @@ connection.onDidChangeConfiguration(change => {
 			(change.settings.languageServerExample || defaultSettings)
 		);
 	}
+
+	reloadComponentCache();
 
 	// Revalidate all open text documents
 	documents.all().forEach(validateTextDocument);
@@ -198,15 +308,46 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	parser.addErrorListener(errorListener);
 
 	const tree = parser.chunk();
+	var visitor = new ValidationVisitor();
+	const visitorErrors = visitor.visit(tree);
+
+	const errors = [
+		...errorListener.errors,
+		...visitorErrors
+	];
 
 	// Send the computed diagnostics to VSCode.
-	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: errorListener.errors });
+	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: errors });
 }
+
+connection.onDidChangeTextDocument(() => {
+	reloadComponentCache();
+});
 
 connection.onDidChangeWatchedFiles(_change => {
 	// Monitored files have change in VSCode
+	reloadComponentCache();
 	connection.console.log('We received an file change event');
 });
+
+const getNativeComponents = () => {
+	const result = [];
+	const files = workspaceRoot
+		? fromDir(workspaceRoot, '.cs')
+		: [];
+
+	for (let file of files) {
+		const content = fs.readFileSync(file).toString('utf8');
+		const regex = /\[NativeComponentRegistration\("(\w+)"\)\]/;
+		const match = regex.exec(content);
+		
+		if (match && match[1]) {
+			result.push(match[1]);
+		}
+	}
+
+	return result;
+}
 
 // This handler provides the initial list of the completion items.
 connection.onCompletion(
@@ -247,15 +388,13 @@ connection.onCompletion(
 				}
 			}
 
-			let components: string[] = [];
-			console.log(candidates);
+			let componentsToDisplay: string[] = [];
+			let nativeComponentsToDisplay: string[] = [];
 			for (let candidate of candidates.rules) {
-				console.log(candidate, luaxParser.RULE_elementName);
 				switch (candidate[0]) {
 				  case luaxParser.RULE_elementName: {
-					components = workspaceRoot
-						? fromDir(workspaceRoot, '.luax')
-						: [];
+					componentsToDisplay = components;
+					nativeComponentsToDisplay = nativeComponents;
 					break;
 				  }
 				}
@@ -267,9 +406,14 @@ connection.onCompletion(
 					kind: CompletionItemKind.Keyword,
 					data: k
 				})),
-				...components.map<CompletionItem>(k => ({
+				...nativeComponentsToDisplay.map<CompletionItem>(k => ({
 					label: k,
 					kind: CompletionItemKind.Class,
+					data: k
+				})),
+				...componentsToDisplay.map<CompletionItem>(k => ({
+					label: k,
+					kind: CompletionItemKind.Function,
 					data: k
 				}))
 			];
@@ -297,7 +441,7 @@ function fromDir(startPath: string, filter: string): string[] {
 			result = [...result, ...fromDir(filename, filter)];
 		}
 		else if (filename.endsWith(filter)) {
-			result.push(path.basename(filename, filter));
+			result.push(filename);
 		}
 	}
 

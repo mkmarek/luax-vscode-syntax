@@ -2,6 +2,7 @@
     "name": "luax-language-support",
     "displayName": "LuaX language support",
     "description": "Language support for LuaX files",
+    "publisher": "MarekMagdziak",
     "version": "0.0.1",
     "engines": {
         "vscode": "^1.39.0"
@@ -82,6 +83,7 @@
         "@types/luaparse": "^0.2.6",
         "antlr4-c3": "^1.1.12",
         "antlr4ts": "^0.5.0-alpha.3",
+        "chokidar": "^3.3.0",
         "luaparse": "^0.2.1",
         "vscode-languageclient": "^5.2.1",
         "vscode-languageserver": "^5.2.1"
